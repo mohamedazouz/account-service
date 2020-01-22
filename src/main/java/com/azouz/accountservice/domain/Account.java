@@ -1,7 +1,6 @@
 package com.azouz.accountservice.domain;
 
 import com.azouz.accountservice.domain.rest.CreateAccountRequest;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Objects;
@@ -10,7 +9,6 @@ import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @JsonDeserialize(builder = Account.Builder.class)
-@JsonIgnoreProperties(ignoreUnknown = true)
 public class Account {
 
     @NotNull
