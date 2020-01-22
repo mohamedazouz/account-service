@@ -46,18 +46,21 @@ public class AccountController {
 
     @POST
     @Path("/{id}/deposits")
-    public void deposit(@PathParam final String id, final DepositWithdrawBalanceHttpRequest balanceHttpRequest,
+    public void deposit(@PathParam final String id,
+                        final DepositWithdrawBalanceHttpRequest balanceHttpRequest,
                         final Context context) {
         try {
             this.accountService.accountDeposit(new DepositWithdrawBalanceTransactionRequest(id, balanceHttpRequest));
         } catch (final AccountNotFoundException exception) {
+            log.warn("Account not found", exception);
             context.send(StatusCode.NOT_FOUND);
         }
     }
 
     @POST
     @Path("/{id}/withdraws")
-    public void withdraw(@PathParam final String id, final DepositWithdrawBalanceHttpRequest balanceHttpRequest,
+    public void withdraw(@PathParam final String id,
+                         final DepositWithdrawBalanceHttpRequest balanceHttpRequest,
                          final Context response) {
         try {
             this.accountService.accountWithdraw(new DepositWithdrawBalanceTransactionRequest(id, balanceHttpRequest));
@@ -72,7 +75,9 @@ public class AccountController {
 
     @POST
     @Path("/{id}/transfers")
-    public void transfer(@PathParam final String id, final TransferHttpRequest transferHttpRequest, final Context response) {
+    public void transfer(@PathParam final String id,
+                         final TransferHttpRequest transferHttpRequest,
+                         final Context response) {
         try {
             this.accountService.accountMoneyTransfer(new AccountMoneyTransferTransactionRequest(id, transferHttpRequest));
         } catch (final AccountNotFoundException exception) {
