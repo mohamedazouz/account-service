@@ -80,17 +80,15 @@ public class AccountService {
         this.createTransaction(request, TransactionType.WITHDRAW);
     }
 
-    public void accountMoneyTransfer(final AccountMoneyTransferTransactionRequest
-                                             accountMoneyTransferTransactionRequest) {
-        synchronized (this) {
-            this.accountWithdraw(new DepositWithdrawBalanceTransactionRequest(
-                    accountMoneyTransferTransactionRequest.getSenderAccountId(),
-                    accountMoneyTransferTransactionRequest.getAmount()));
+    public synchronized void accountMoneyTransfer(final AccountMoneyTransferTransactionRequest
+                                                          accountMoneyTransferTransactionRequest) {
+        this.accountWithdraw(new DepositWithdrawBalanceTransactionRequest(
+                accountMoneyTransferTransactionRequest.getSenderAccountId(),
+                accountMoneyTransferTransactionRequest.getAmount()));
 
-            this.accountDeposit(new DepositWithdrawBalanceTransactionRequest(
-                    accountMoneyTransferTransactionRequest.getReceiverAccountId(),
-                    accountMoneyTransferTransactionRequest.getAmount()));
-        }
+        this.accountDeposit(new DepositWithdrawBalanceTransactionRequest(
+                accountMoneyTransferTransactionRequest.getReceiverAccountId(),
+                accountMoneyTransferTransactionRequest.getAmount()));
     }
 
     public List<Transaction> getAllTransactions() {
