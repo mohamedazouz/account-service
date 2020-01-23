@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.text.MessageFormat.format;
+
 @Singleton
 public class AccountService {
 
@@ -41,7 +43,7 @@ public class AccountService {
     public Account getAccount(final String id) throws AccountNotFoundException {
         final Optional<Account> accountOpt = this.accountRepository.getById(id);
         if (!accountOpt.isPresent()) {
-            throw new AccountNotFoundException("Account Not Found");
+            throw new AccountNotFoundException(format("Account with Id: {0} is not found", id));
         }
         return accountOpt.get();
     }
@@ -61,10 +63,12 @@ public class AccountService {
 
     public void accountWithdraw(final DepositWithdrawBalanceTransactionRequest request) {
         synchronized (this) {
-            final Account account = this.getAccount(request.getAccountId());
+            final String id = request.getAccountId();
+            final Account account = this.getAccount(id);
             final BigDecimal newBalance = account.getBalance().add(request.getAmount().negate());
             if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
-                throw new InsufficientAccountBalanceException("Insufficient Account Balance Exception");
+                throw new InsufficientAccountBalanceException(
+                        format("Insufficient Balance: Account Id: {0} has no enough balance", id));
             }
             this.accountRepository.upsert(Account.builder(account).withBalance(newBalance).build());
         }
@@ -74,9 +78,12 @@ public class AccountService {
     public void accountMoneyTransfer(final AccountMoneyTransferTransactionRequest
                                              accountMoneyTransferTransactionRequest) {
         synchronized (this) {
-            this.accountWithdraw(new DepositWithdrawBalanceTransactionRequest(accountMoneyTransferTransactionRequest.getSenderAccountId(),
+            this.accountWithdraw(new DepositWithdrawBalanceTransactionRequest(
+                    accountMoneyTransferTransactionRequest.getSenderAccountId(),
                     accountMoneyTransferTransactionRequest.getAmount()));
-            this.accountDeposit(new DepositWithdrawBalanceTransactionRequest(accountMoneyTransferTransactionRequest.getReceiverAccountId(),
+
+            this.accountDeposit(new DepositWithdrawBalanceTransactionRequest(
+                    accountMoneyTransferTransactionRequest.getReceiverAccountId(),
                     accountMoneyTransferTransactionRequest.getAmount()));
         }
     }

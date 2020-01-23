@@ -6,11 +6,7 @@ import com.azouz.accountservice.domain.rest.DepositWithdrawBalanceHttpRequest;
 import com.azouz.accountservice.domain.rest.TransferHttpRequest;
 import com.azouz.accountservice.domain.transaction.AccountMoneyTransferTransactionRequest;
 import com.azouz.accountservice.domain.transaction.DepositWithdrawBalanceTransactionRequest;
-import com.azouz.accountservice.exception.AccountNotFoundException;
-import com.azouz.accountservice.exception.InsufficientAccountBalanceException;
 import com.azouz.accountservice.service.AccountService;
-import io.jooby.Context;
-import io.jooby.StatusCode;
 import io.jooby.annotations.GET;
 import io.jooby.annotations.POST;
 import io.jooby.annotations.Path;
@@ -47,45 +43,19 @@ public class AccountController {
     @POST
     @Path("/{id}/deposits")
     public void deposit(@PathParam final String id,
-                        final DepositWithdrawBalanceHttpRequest balanceHttpRequest,
-                        final Context context) {
-        try {
-            this.accountService.accountDeposit(new DepositWithdrawBalanceTransactionRequest(id, balanceHttpRequest));
-        } catch (final AccountNotFoundException exception) {
-            log.warn("Account not found", exception);
-            context.send(StatusCode.NOT_FOUND);
-        }
+                        final DepositWithdrawBalanceHttpRequest balanceHttpRequest) {
+        this.accountService.accountDeposit(new DepositWithdrawBalanceTransactionRequest(id, balanceHttpRequest));
     }
 
     @POST
     @Path("/{id}/withdraws")
-    public void withdraw(@PathParam final String id,
-                         final DepositWithdrawBalanceHttpRequest balanceHttpRequest,
-                         final Context response) {
-        try {
-            this.accountService.accountWithdraw(new DepositWithdrawBalanceTransactionRequest(id, balanceHttpRequest));
-        } catch (final AccountNotFoundException exception) {
-            log.warn("Account not found", exception);
-            response.send(StatusCode.NOT_FOUND);
-        } catch (final InsufficientAccountBalanceException exception) {
-            log.warn("Insufficient Account Balance", exception);
-            response.send(StatusCode.BAD_REQUEST);
-        }
+    public void withdraw(@PathParam final String id, final DepositWithdrawBalanceHttpRequest balanceHttpRequest) {
+        this.accountService.accountWithdraw(new DepositWithdrawBalanceTransactionRequest(id, balanceHttpRequest));
     }
 
     @POST
     @Path("/{id}/transfers")
-    public void transfer(@PathParam final String id,
-                         final TransferHttpRequest transferHttpRequest,
-                         final Context response) {
-        try {
-            this.accountService.accountMoneyTransfer(new AccountMoneyTransferTransactionRequest(id, transferHttpRequest));
-        } catch (final AccountNotFoundException exception) {
-            log.warn("Account not found", exception);
-            response.send(StatusCode.NOT_FOUND);
-        } catch (final InsufficientAccountBalanceException exception) {
-            log.warn("Insufficient Account Balance", exception);
-            response.send(StatusCode.BAD_REQUEST);
-        }
+    public void transfer(@PathParam final String id, final TransferHttpRequest transferHttpRequest) {
+        this.accountService.accountMoneyTransfer(new AccountMoneyTransferTransactionRequest(id, transferHttpRequest));
     }
 }

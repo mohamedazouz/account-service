@@ -5,6 +5,7 @@ import com.azouz.accountservice.respository.account.InMemoryAccountRepository;
 import com.azouz.accountservice.respository.transaction.InMemoryTransactionRepository;
 import com.azouz.accountservice.respository.transaction.TransactionRepository;
 import com.azouz.accountservice.service.AccountService;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.inject.AbstractModule;
@@ -24,6 +25,7 @@ public class BeansConfig extends AbstractModule {
     public ObjectMapper objectMapper() {
         final ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
         return objectMapper;
     }
 }

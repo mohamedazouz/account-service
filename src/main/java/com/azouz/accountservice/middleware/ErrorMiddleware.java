@@ -1,7 +1,9 @@
 package com.azouz.accountservice.middleware;
 
 import com.azouz.accountservice.domain.rest.error.ErrorResponse;
+import com.azouz.accountservice.exception.AccountNotFoundException;
 import com.azouz.accountservice.exception.BadRequestException;
+import com.azouz.accountservice.exception.InsufficientAccountBalanceException;
 import com.azouz.accountservice.rest.AccountController;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -31,23 +33,33 @@ public class ErrorMiddleware implements ErrorHandler {
     @Nonnull
     @Override
     public void apply(@Nonnull final Context ctx, @Nonnull final Throwable cause, @Nonnull final StatusCode statusCode) {
-        if (cause instanceof BadRequestException) {
-            this.handleBadRequestException(ctx, (BadRequestException) cause);
-        }
-        this.log.error("uncathed error", cause);
-    }
-
-    public void handleBadRequestException(@Nonnull final Context ctx,
-                                          @Nonnull final BadRequestException badRequestException) {
-        final ErrorResponse errorResponse = badRequestException.getErrorResponse();
         try {
+            String responseBody = this.getResponseBody(new ErrorResponse(ErrorHandler.errorMessage(ctx, statusCode)));
+            StatusCode responseStatusCode = statusCode;
+            if (cause instanceof BadRequestException) {
+                responseStatusCode = StatusCode.BAD_REQUEST;
+                responseBody = this.getResponseBody(((BadRequestException) cause).getErrorResponse());
+            }
+            if (cause instanceof AccountNotFoundException) {
+                responseStatusCode = StatusCode.NOT_FOUND;
+                responseBody = this.getResponseBody(new ErrorResponse(cause.getMessage()));
+
+            }
+            if (cause instanceof InsufficientAccountBalanceException) {
+                responseStatusCode = StatusCode.BAD_REQUEST;
+                responseBody = this.getResponseBody(new ErrorResponse(cause.getMessage()));
+            }
             ctx.setResponseType(MediaType.json)
-                    .setResponseCode(StatusCode.BAD_REQUEST)
-                    .send(new ObjectMapper().writeValueAsString(errorResponse));
+                    .setResponseCode(responseStatusCode)
+                    .send(responseBody);
         } catch (final JsonProcessingException e) {
-            log.error("Exception while response on badrequest exception", e);
+            log.error("Exception while response on bad request exception", e);
             ctx.setResponseType(MediaType.json)
                     .setResponseCode(StatusCode.SERVER_ERROR);
         }
+    }
+
+    private <T> String getResponseBody(final T value) throws JsonProcessingException {
+        return this.objectMapper.writeValueAsString(value);
     }
 }

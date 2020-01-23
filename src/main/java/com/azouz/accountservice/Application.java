@@ -16,11 +16,12 @@ public class Application extends Jooby {
         final Injector injector = Guice.createInjector(new BeansConfig());
 
         install(new JacksonModule());
-        mvc(injector.getInstance(AccountController.class));
 
         decoder(MediaType.json, injector.getInstance(ValidationMiddleware.class));
 
         error(injector.getInstance(ErrorMiddleware.class));
+
+        mvc(injector.getInstance(AccountController.class));
     }
 
 
