@@ -30,12 +30,12 @@ public class InMemoryAccountRepository implements AccountRepository {
     }
 
     @Override
-    public Optional<Account> getById(final String id) {
+    public Optional<Account> getAccount(final String id) {
         return Optional.ofNullable(this.accountMap.get(id));
     }
 
     @Override
-    public List<Account> getAll() {
+    public List<Account> getAccounts() {
         return Lists.newArrayList(this.accountMap.values());
     }
 

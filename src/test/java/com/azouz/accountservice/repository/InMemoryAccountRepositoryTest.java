@@ -36,13 +36,14 @@ public class InMemoryAccountRepositoryTest {
     @Test
     public void getAccountById() {
         final Account account = this.createAccount();
-        final Optional<Account> expectedAccountOpt = this.accountRepository.getById(account.getId());
+        final Optional<Account> expectedAccountOpt = this.accountRepository.getAccount(account.getId());
         assertEquals(expectedAccountOpt.get(), account);
     }
 
+    @Test
     public void getAccountByIdWithEmptyResponse() {
         this.assertGetAllAccounts(Lists.newArrayList());
-        final Optional<Account> expectedAccountOpt = this.accountRepository.getById("1234");
+        final Optional<Account> expectedAccountOpt = this.accountRepository.getAccount("1234");
         assertFalse(expectedAccountOpt.isPresent());
     }
 
@@ -51,7 +52,7 @@ public class InMemoryAccountRepositoryTest {
         final Account account = this.createAccount();
         final Account newUpdatedAccount = Account.builder(account).withBalance(BigDecimal.valueOf(100)).build();
         this.accountRepository.upsert(newUpdatedAccount);
-        final Optional<Account> expectedAccountOpt = this.accountRepository.getById(account.getId());
+        final Optional<Account> expectedAccountOpt = this.accountRepository.getAccount(account.getId());
         assertEquals(expectedAccountOpt.get(), newUpdatedAccount);
         this.assertGetAllAccounts(Lists.newArrayList(newUpdatedAccount));
     }
@@ -67,8 +68,8 @@ public class InMemoryAccountRepositoryTest {
     }
 
     private void assertGetAllAccounts(final Collection<Account> accounts) {
-        final List<Account> expectedAccounts = this.accountRepository.getAll();
-        assertThat(expectedAccounts, containsInAnyOrder(expectedAccounts.toArray()));
+        final List<Account> expectedAccounts = this.accountRepository.getAccounts();
+        assertThat(expectedAccounts, containsInAnyOrder(accounts.toArray()));
     }
 
     private Account createAccount() {

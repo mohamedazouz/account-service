@@ -9,7 +9,7 @@ public interface AccountRepository {
 
     void upsert(final Account account);
 
-    Optional<Account> getById(final String id) throws RuntimeException;
+    Optional<Account> getAccount(final String id) throws RuntimeException;
 
-    List<Account> getAll();
+    List<Account> getAccounts();
 }

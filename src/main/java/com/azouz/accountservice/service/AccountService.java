@@ -1,6 +1,7 @@
 package com.azouz.accountservice.service;
 
 import com.azouz.accountservice.domain.Account;
+import com.azouz.accountservice.domain.id.IdProvider;
 import com.azouz.accountservice.domain.rest.CreateAccountRequest;
 import com.azouz.accountservice.domain.transaction.AccountMoneyTransferTransactionRequest;
 import com.azouz.accountservice.domain.transaction.DepositWithdrawBalanceTransactionRequest;
@@ -27,21 +28,25 @@ public class AccountService {
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
+    private final IdProvider idProvider;
 
     @Inject
-    public AccountService(final AccountRepository accountRepository, final TransactionRepository transactionRepository) {
+    public AccountService(final AccountRepository accountRepository,
+                          final TransactionRepository transactionRepository,
+                          final IdProvider idProvider) {
         this.accountRepository = accountRepository;
         this.transactionRepository = transactionRepository;
+        this.idProvider = idProvider;
     }
 
     public Account createAccount(final CreateAccountRequest createAccountRequest) {
-        final Account account = Account.builder(UUID.randomUUID().toString(), createAccountRequest).build();
+        final Account account = Account.builder(idProvider.generateAccountId(), createAccountRequest).build();
         this.accountRepository.upsert(account);
         return account;
     }
 
     public Account getAccount(final String id) throws AccountNotFoundException {
-        final Optional<Account> accountOpt = this.accountRepository.getById(id);
+        final Optional<Account> accountOpt = this.accountRepository.getAccount(id);
         if (!accountOpt.isPresent()) {
             throw new AccountNotFoundException(format("Account with Id: {0} is not found", id));
         }
@@ -49,7 +54,7 @@ public class AccountService {
     }
 
     public List<Account> getAllAccounts() {
-        return this.accountRepository.getAll();
+        return this.accountRepository.getAccounts();
     }
 
     public void accountDeposit(final DepositWithdrawBalanceTransactionRequest request) throws AccountNotFoundException {
@@ -88,6 +93,9 @@ public class AccountService {
         }
     }
 
+    public List<Transaction> getAllTransactions() {
+        return this.transactionRepository.getTransactions();
+    }
 
     private void createTransaction(final DepositWithdrawBalanceTransactionRequest request, final TransactionType type) {
         final Transaction transaction = Transaction.builder()
@@ -97,7 +105,7 @@ public class AccountService {
                 .withTimestamp(AccountService.getCurrentTimestamp())
                 .withId(UUID.randomUUID().toString())
                 .build();
-        this.transactionRepository.create(transaction);
+        this.transactionRepository.upsert(transaction);
     }
 
     public static long getCurrentTimestamp() {

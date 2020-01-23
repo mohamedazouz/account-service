@@ -1,8 +1,10 @@
 package com.azouz.accountservice.respository.transaction;
 
 import com.azouz.accountservice.domain.transaction.Transaction;
+import com.google.common.collect.Lists;
 import com.google.inject.Singleton;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -20,7 +22,12 @@ public class InMemoryTransactionRepository implements TransactionRepository {
     }
 
     @Override
-    public void create(final Transaction transaction) {
+    public void upsert(final Transaction transaction) {
         this.transactionMap.put(transaction.getId(), transaction);
+    }
+
+    @Override
+    public List<Transaction> getTransactions() {
+        return Lists.newArrayList(this.transactionMap.values());
     }
 }

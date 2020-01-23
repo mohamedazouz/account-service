@@ -18,6 +18,14 @@ public class CreateAccountRequest {
     public CreateAccountRequest() {
     }
 
+    public CreateAccountRequest(@NotNull final String customerId,
+                                @NotNull @DecimalMin(value = "0.0", inclusive = false) final BigDecimal balance,
+                                @NotNull final String currency) {
+        this.customerId = customerId;
+        this.balance = balance;
+        this.currency = currency;
+    }
+
     public void setCustomerId(final String customerId) {
         this.customerId = customerId;
     }

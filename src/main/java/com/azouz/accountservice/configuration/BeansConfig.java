@@ -1,5 +1,7 @@
 package com.azouz.accountservice.configuration;
 
+import com.azouz.accountservice.domain.id.IdProvider;
+import com.azouz.accountservice.domain.id.UUIDIdProvider;
 import com.azouz.accountservice.respository.account.AccountRepository;
 import com.azouz.accountservice.respository.account.InMemoryAccountRepository;
 import com.azouz.accountservice.respository.transaction.InMemoryTransactionRepository;
@@ -18,6 +20,7 @@ public class BeansConfig extends AbstractModule {
 
         bind(AccountRepository.class).to(InMemoryAccountRepository.class);
         bind(TransactionRepository.class).to(InMemoryTransactionRepository.class);
+        bind(IdProvider.class).to(UUIDIdProvider.class);
         bind(AccountService.class);
     }
 
