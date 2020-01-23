@@ -180,6 +180,95 @@ public class AccountServiceTest {
         assertGetAllTransactions(TransactionType.WITHDRAW, createdAccount.getId(), 100);
     }
 
+    @Test(expected = AccountNotFoundException.class)
+    public void transferNonExistingSenderAccountTest() {
+        assertGetAllAccounts(Lists.newArrayList());
+        this.accountService
+                .accountMoneyTransfer(DataUtils
+                        .getTransferRequest("id", "2", BigDecimal.valueOf(1)));
+        throw new RuntimeException("test must not come at this line");
+    }
+
+
+    @Test(expected = AccountNotFoundException.class)
+    public void transferToNonExistingReceiverAccountTest() {
+        final Account senderAccount =
+                this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(100)));
+        this.accountService
+                .accountMoneyTransfer(DataUtils
+                        .getTransferRequest(senderAccount.getId(), "2", BigDecimal.valueOf(1)));
+        throw new RuntimeException("test must not come at this line");
+    }
+
+    @Test(expected = InsufficientAccountBalanceException.class)
+    public void transferFromExistingAccountSenderInsufficientBalanceTest() {
+        final Account senderAccount =
+                this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(1)));
+        final Account receiverAccount =
+                this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(1)));
+
+        this.accountService
+                .accountMoneyTransfer(DataUtils
+                        .getTransferRequest(senderAccount.getId(), receiverAccount.getId(), BigDecimal.valueOf(2)));
+        throw new RuntimeException("test must not come at this line");
+    }
+
+    @Test
+    public void transferMoneyTest() {
+        final Account senderAccount =
+                this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(100)));
+        final Account receiverAccount =
+                this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(0)));
+
+        final BigDecimal transferAmount = BigDecimal.valueOf(50);
+        this.accountService
+                .accountMoneyTransfer(DataUtils
+                        .getTransferRequest(senderAccount.getId(), receiverAccount.getId(), transferAmount));
+
+        final Account updatedSenderAccount = Account
+                .builder(senderAccount)
+                .withBalance(senderAccount.getBalance().subtract(transferAmount)).build();
+
+        final Account updateReceiverAccount = Account
+                .builder(receiverAccount)
+                .withBalance(receiverAccount.getBalance().add(transferAmount)).build();
+
+        assertGetAllAccounts(Lists.newArrayList(updatedSenderAccount, updateReceiverAccount));
+
+        assertGetAllTransactions(TransactionType.WITHDRAW, senderAccount.getId(), 1);
+        assertGetAllTransactions(TransactionType.DEPOSIT, receiverAccount.getId(), 1);
+    }
+
+
+    @Test
+    public void transferMoneyTestWithMultipleThreadsWorkingInParallel() throws InterruptedException {
+        final Account senderAccount =
+                this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(100)));
+        final Account receiverAccount =
+                this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(0)));
+
+        executeInConcurrentEnv(() -> {
+            this.accountService
+                    .accountMoneyTransfer(DataUtils
+                            .getTransferRequest(senderAccount.getId(), receiverAccount.getId(), BigDecimal.valueOf(1)));
+            return null;
+        }, 100);
+
+        final BigDecimal transferAmount = BigDecimal.valueOf(100);
+        final Account updatedSenderAccount = Account
+                .builder(senderAccount)
+                .withBalance(senderAccount.getBalance().subtract(transferAmount)).build();
+
+        final Account updateReceiverAccount = Account
+                .builder(receiverAccount)
+                .withBalance(receiverAccount.getBalance().add(transferAmount)).build();
+
+        assertGetAllAccounts(Lists.newArrayList(updatedSenderAccount, updateReceiverAccount));
+
+        assertGetAllTransactions(TransactionType.WITHDRAW, senderAccount.getId(), 100);
+        assertGetAllTransactions(TransactionType.DEPOSIT, receiverAccount.getId(), 100);
+    }
+
 
     private void executeInConcurrentEnv(final Callable<Void> callable, final int excutableNumber) throws InterruptedException {
         final ExecutorService executorService = Executors.newFixedThreadPool(5);

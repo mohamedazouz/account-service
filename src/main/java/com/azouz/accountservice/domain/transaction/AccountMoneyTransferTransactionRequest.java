@@ -2,11 +2,19 @@ package com.azouz.accountservice.domain.transaction;
 
 import com.azouz.accountservice.domain.rest.TransferHttpRequest;
 
+import javax.validation.constraints.DecimalMin;
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 public class AccountMoneyTransferTransactionRequest {
+    @NotNull
     private String senderAccountId;
+
+    @NotNull
     private String receiverAccountId;
+
+    @NotNull
+    @DecimalMin(value = "0.0", inclusive = false)
     private BigDecimal amount;
 
 

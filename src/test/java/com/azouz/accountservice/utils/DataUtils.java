@@ -2,6 +2,7 @@ package com.azouz.accountservice.utils;
 
 import com.azouz.accountservice.domain.Account;
 import com.azouz.accountservice.domain.rest.CreateAccountRequest;
+import com.azouz.accountservice.domain.transaction.AccountMoneyTransferTransactionRequest;
 import com.azouz.accountservice.domain.transaction.DepositWithdrawBalanceTransactionRequest;
 
 import java.math.BigDecimal;
@@ -29,4 +30,12 @@ public class DataUtils {
                                                                                      final BigDecimal amount) {
         return new DepositWithdrawBalanceTransactionRequest(accountId, amount);
     }
+
+    public static AccountMoneyTransferTransactionRequest getTransferRequest(final String senderAccountId,
+                                                                            final String receiverAccountId,
+                                                                            final BigDecimal amount) {
+        return new AccountMoneyTransferTransactionRequest(senderAccountId, receiverAccountId, amount);
+
+    }
+
 }
