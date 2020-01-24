@@ -65,6 +65,7 @@
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
+            <!--Run Integration Tests-->
             <plugin>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <configuration>

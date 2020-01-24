@@ -175,7 +175,7 @@ public class AccountControllerIT {
         return client.newCall(req).execute();
     }
 
-    private <T> Response createGetRequest(final String path) throws IOException {
+    private Response createGetRequest(final String path) throws IOException {
         final Request req = new Request.Builder()
                 .url(getURL(path))
                 .get()

@@ -19,8 +19,9 @@ import org.joda.time.DateTimeZone;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
+import static com.azouz.accountservice.domain.transaction.TransactionType.DEPOSIT;
+import static com.azouz.accountservice.domain.transaction.TransactionType.WITHDRAW;
 import static java.text.MessageFormat.format;
 
 @Singleton
@@ -57,61 +58,59 @@ public class AccountService {
         return this.accountRepository.getAccounts();
     }
 
-    public void accountDeposit(final DepositWithdrawBalanceTransactionRequest request) throws AccountNotFoundException {
-        synchronized (this) {
-            final Account account = this.getAccount(request.getAccountId());
-            final BigDecimal newBalance = account.getBalance().add(request.getAmount());
-            this.accountRepository.upsert(Account.builder(account).withBalance(newBalance).build());
-        }
-        this.createTransaction(request, TransactionType.DEPOSIT);
+    public synchronized void accountDeposit(final DepositWithdrawBalanceTransactionRequest request) throws AccountNotFoundException {
+        final Account account = this.getAccount(request.getAccountId());
+        this.addMoneyToAccount(account, request.getAmount());
     }
 
-    public void accountWithdraw(final DepositWithdrawBalanceTransactionRequest request) {
-        synchronized (this) {
-            final String id = request.getAccountId();
-            final Account account = this.getAccount(id);
-            final BigDecimal newBalance = account.getBalance().add(request.getAmount().negate());
-            if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
-                throw new InsufficientAccountBalanceException(
-                        format("Insufficient Balance: Account Id: {0} has no enough balance", id));
-            }
-            this.accountRepository.upsert(Account.builder(account).withBalance(newBalance).build());
-        }
-        this.createTransaction(request, TransactionType.WITHDRAW);
+    public synchronized void accountWithdraw(final DepositWithdrawBalanceTransactionRequest request) {
+        final String id = request.getAccountId();
+        final Account account = this.getAccount(id);
+        this.addMoneyToAccount(account, request.getAmount().negate());
     }
 
-    public synchronized void accountMoneyTransfer(final AccountMoneyTransferTransactionRequest
-                                                          accountMoneyTransferTransactionRequest) {
-        this.accountWithdraw(new DepositWithdrawBalanceTransactionRequest(
-                accountMoneyTransferTransactionRequest.getSenderAccountId(),
-                accountMoneyTransferTransactionRequest.getAmount()));
+    public synchronized void accountMoneyTransfer(final AccountMoneyTransferTransactionRequest request) {
+        final Account senderAccount = this.getAccount(request.getSenderAccountId());
+        final Account receiverAccount = this.getAccount(request.getReceiverAccountId());
 
-        this.accountDeposit(new DepositWithdrawBalanceTransactionRequest(
-                accountMoneyTransferTransactionRequest.getReceiverAccountId(),
-                accountMoneyTransferTransactionRequest.getAmount()));
+        this.addMoneyToAccount(senderAccount, request.getAmount().negate());
+        this.addMoneyToAccount(receiverAccount, request.getAmount());
     }
 
     public List<Transaction> getAllTransactions() {
         return this.transactionRepository.getTransactions();
     }
 
-    private void createTransaction(final DepositWithdrawBalanceTransactionRequest request, final TransactionType type) {
+    public void deleteAccount(final String id) {
+        final Account account = getAccount(id);
+        this.accountRepository.deleteAccount(account.getId());
+    }
+
+    private void addMoneyToAccount(final Account account, final BigDecimal amount) {
+        synchronized (this) {
+            final BigDecimal newBalance = account.getBalance().add(amount);
+            if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
+                throw new InsufficientAccountBalanceException(
+                        format("Insufficient Balance: Account Id: {0} has no enough balance", account.getId()));
+            }
+            this.accountRepository.upsert(Account.builder(account).withBalance(newBalance).build());
+        }
+        this.createTransaction(account, amount);
+    }
+
+    private void createTransaction(final Account request, final BigDecimal amount) {
+        final TransactionType type = amount.compareTo(BigDecimal.ZERO) >= 0 ? DEPOSIT : WITHDRAW;
         final Transaction transaction = Transaction.builder()
-                .withAccountId(request.getAccountId())
-                .withAmount(request.getAmount())
+                .withAccountId(request.getId())
+                .withAmount(amount)
                 .withType(type)
                 .withTimestamp(AccountService.getCurrentTimestamp())
-                .withId(UUID.randomUUID().toString())
+                .withId(idProvider.generateTransactionId())
                 .build();
         this.transactionRepository.upsert(transaction);
     }
 
-    public static long getCurrentTimestamp() {
+    private static long getCurrentTimestamp() {
         return DateTime.now(DateTimeZone.UTC).getMillis();
-    }
-
-    public void deleteAccount(final String id) {
-        final Account account = getAccount(id);
-        this.accountRepository.deleteAccount(account.getId());
     }
 }
