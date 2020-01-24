@@ -39,4 +39,9 @@ public class InMemoryAccountRepository implements AccountRepository {
         return Lists.newArrayList(this.accountMap.values());
     }
 
+    @Override
+    public void deleteAccount(final String id) {
+        this.accountMap.remove(id);
+    }
+
 }

@@ -12,4 +12,6 @@ public interface AccountRepository {
     Optional<Account> getAccount(final String id) throws RuntimeException;
 
     List<Account> getAccounts();
+
+    void deleteAccount(String id);
 }

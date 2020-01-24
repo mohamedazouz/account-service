@@ -9,10 +9,16 @@ public class TransferHttpRequest {
     private String receiverAccountId;
 
     @NotNull
-    @DecimalMin(value = "0.0", inclusive = false)
+    @DecimalMin(value = "0.0")
     private BigDecimal amount;
 
     public TransferHttpRequest() {
+    }
+
+    public TransferHttpRequest(@NotNull final String receiverAccountId,
+                               @NotNull @DecimalMin(value = "0.0") final BigDecimal amount) {
+        this.receiverAccountId = receiverAccountId;
+        this.amount = amount;
     }
 
     public String getReceiverAccountId() {

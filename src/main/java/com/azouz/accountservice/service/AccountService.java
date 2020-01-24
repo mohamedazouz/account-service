@@ -109,4 +109,9 @@ public class AccountService {
     public static long getCurrentTimestamp() {
         return DateTime.now(DateTimeZone.UTC).getMillis();
     }
+
+    public void deleteAccount(final String id) {
+        final Account account = getAccount(id);
+        this.accountRepository.deleteAccount(account.getId());
+    }
 }

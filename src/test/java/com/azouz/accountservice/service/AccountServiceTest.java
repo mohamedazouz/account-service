@@ -61,6 +61,15 @@ public class AccountServiceTest {
         throw new RuntimeException("test must not come at this line");
     }
 
+    public void deteAccountTest() {
+        final Account account = this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest());
+        assertNotNull(account);
+        assertGetAllAccounts(Lists.newArrayList(account));
+
+        this.accountService.deleteAccount(account.getId());
+        assertGetAllAccounts(Lists.newArrayList(account));
+    }
+
     @Test
     public void createMultipleNewAccountsTest() throws InterruptedException {
         final List<Account> accounts = Lists.newArrayList();

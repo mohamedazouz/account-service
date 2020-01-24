@@ -7,10 +7,7 @@ import com.azouz.accountservice.domain.rest.TransferHttpRequest;
 import com.azouz.accountservice.domain.transaction.AccountMoneyTransferTransactionRequest;
 import com.azouz.accountservice.domain.transaction.DepositWithdrawBalanceTransactionRequest;
 import com.azouz.accountservice.service.AccountService;
-import io.jooby.annotations.GET;
-import io.jooby.annotations.POST;
-import io.jooby.annotations.Path;
-import io.jooby.annotations.PathParam;
+import io.jooby.annotations.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,6 +35,12 @@ public class AccountController {
     @GET
     public List<Account> getAll() {
         return this.accountService.getAllAccounts();
+    }
+
+    @DELETE
+    @Path("/{id}")
+    public void deleteAccount(@PathParam final String id) {
+        this.accountService.deleteAccount(id);
     }
 
     @POST

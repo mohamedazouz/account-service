@@ -9,7 +9,7 @@ public class CreateAccountRequest {
     private String customerId;
 
     @NotNull
-    @DecimalMin(value = "0.0", inclusive = false)
+    @DecimalMin(value = "0.0")
     private BigDecimal balance;
 
     @NotNull
@@ -19,7 +19,7 @@ public class CreateAccountRequest {
     }
 
     public CreateAccountRequest(@NotNull final String customerId,
-                                @NotNull @DecimalMin(value = "0.0", inclusive = false) final BigDecimal balance,
+                                @NotNull @DecimalMin(value = "0.0") final BigDecimal balance,
                                 @NotNull final String currency) {
         this.customerId = customerId;
         this.balance = balance;

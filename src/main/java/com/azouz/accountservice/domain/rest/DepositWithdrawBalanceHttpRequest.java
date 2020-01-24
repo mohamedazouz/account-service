@@ -6,7 +6,7 @@ import java.math.BigDecimal;
 
 public class DepositWithdrawBalanceHttpRequest {
     @NotNull
-    @DecimalMin(value = "0.0", inclusive = false)
+    @DecimalMin(value = "0.0")
     private BigDecimal amount;
 
     public DepositWithdrawBalanceHttpRequest() {
