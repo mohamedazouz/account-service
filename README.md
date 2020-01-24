@@ -1,6 +1,3 @@
-
-
-
 Build and Deploy
 ----------------------
 
@@ -17,10 +14,10 @@ Build the application:
 Run locally
 ----------------------
 
-    Dockerfile
+    * Dockerfile
+        docker run -t "account-service"
     * Java
         java -jar target/transaction-service.jar 
-
 
 EndPoints:
 ----------
