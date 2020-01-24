@@ -9,6 +9,7 @@ import com.azouz.accountservice.exception.InsufficientAccountBalanceException;
 import com.azouz.accountservice.respository.account.InMemoryAccountRepository;
 import com.azouz.accountservice.respository.transaction.InMemoryTransactionRepository;
 import com.azouz.accountservice.utils.DataUtils;
+import com.azouz.accountservice.utils.ParallelExecutionUtil;
 import com.google.common.collect.Lists;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,11 +17,6 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
@@ -74,7 +70,7 @@ public class AccountServiceTest {
     public void createMultipleNewAccountsTest() throws InterruptedException {
         final List<Account> accounts = Lists.newArrayList();
         final int sizeOfNewAccounts = 10;
-        executeInConcurrentEnv(() -> {
+        ParallelExecutionUtil.executeInConcurrentEnv(() -> {
             accounts.add(this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest()));
             return null;
         }, sizeOfNewAccounts);
@@ -114,7 +110,7 @@ public class AccountServiceTest {
         final Account createdAccount =
                 this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(0)));
 
-        executeInConcurrentEnv(() -> {
+        ParallelExecutionUtil.executeInConcurrentEnv(() -> {
             final DepositWithdrawBalanceTransactionRequest request =
                     DataUtils.getDepositWithdrawRequest(createdAccount.getId(), BigDecimal.valueOf(1));
             this.accountService.accountDeposit(request);
@@ -172,7 +168,7 @@ public class AccountServiceTest {
         final Account createdAccount =
                 this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(100)));
 
-        executeInConcurrentEnv(() -> {
+        ParallelExecutionUtil.executeInConcurrentEnv(() -> {
             final DepositWithdrawBalanceTransactionRequest request =
                     DataUtils.getDepositWithdrawRequest(createdAccount.getId(), BigDecimal.valueOf(1));
             this.accountService.accountWithdraw(request);
@@ -256,7 +252,7 @@ public class AccountServiceTest {
         final Account receiverAccount =
                 this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(0)));
 
-        executeInConcurrentEnv(() -> {
+        ParallelExecutionUtil.executeInConcurrentEnv(() -> {
             this.accountService
                     .accountMoneyTransfer(DataUtils
                             .getTransferRequest(senderAccount.getId(), receiverAccount.getId(), BigDecimal.valueOf(1)));
@@ -276,17 +272,6 @@ public class AccountServiceTest {
 
         assertGetAllTransactions(TransactionType.WITHDRAW, senderAccount.getId(), 100);
         assertGetAllTransactions(TransactionType.DEPOSIT, receiverAccount.getId(), 100);
-    }
-
-
-    private void executeInConcurrentEnv(final Callable<Void> callable, final int excutableNumber) throws InterruptedException {
-        final ExecutorService executorService = Executors.newFixedThreadPool(5);
-
-        final List<Callable<Void>> callables = IntStream.range(0, excutableNumber)
-                .mapToObj(i -> callable)
-                .collect(Collectors.toList());
-
-        executorService.invokeAll(callables);
     }
 
 

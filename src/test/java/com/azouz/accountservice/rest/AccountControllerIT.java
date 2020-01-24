@@ -5,6 +5,7 @@ import com.azouz.accountservice.domain.Account;
 import com.azouz.accountservice.domain.rest.CreateAccountRequest;
 import com.azouz.accountservice.domain.rest.TransferHttpRequest;
 import com.azouz.accountservice.utils.DataUtils;
+import com.azouz.accountservice.utils.ParallelExecutionUtil;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -82,6 +83,31 @@ public class AccountControllerIT {
 
         final BigDecimal transferAmount = BigDecimal.valueOf(70);
         transferMoney(senderAccount.getId(), new TransferHttpRequest(receiverAccount.getId(), transferAmount));
+
+        final Account updatedSenderAccount = Account
+                .builder(senderAccount)
+                .withBalance(senderAccount.getBalance().subtract(transferAmount)).build();
+
+        final Account updateReceiverAccount = Account
+                .builder(receiverAccount)
+                .withBalance(receiverAccount.getBalance().add(transferAmount)).build();
+
+        assertGetAllAccounts(Lists.newArrayList(updatedSenderAccount, updateReceiverAccount));
+        deleteAccounts(Lists.newArrayList(senderAccount, receiverAccount));
+    }
+
+
+    @Test
+    public void transferMoneyTestWithMultipleThreadsWorkingInParallel() throws IOException, InterruptedException {
+        final Account senderAccount = createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(100)));
+        final Account receiverAccount = createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(0)));
+
+        ParallelExecutionUtil.executeInConcurrentEnv(() -> {
+            transferMoney(senderAccount.getId(), new TransferHttpRequest(receiverAccount.getId(), BigDecimal.valueOf(1)));
+            return null;
+        }, 100);
+
+        final BigDecimal transferAmount = BigDecimal.valueOf(100);
 
         final Account updatedSenderAccount = Account
                 .builder(senderAccount)
