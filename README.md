@@ -1,3 +1,6 @@
+
+
+
 Build and Deploy
 ----------------------
 
@@ -9,7 +12,7 @@ Make sure you have all necessary tools installed
 Build the application:
 
     mvn clean install
-    docker build -t "transaction-service" .
+    docker build -t "account-service" .
      
 Run locally
 ----------------------
@@ -21,29 +24,10 @@ Run locally
 
 EndPoints:
 ----------
-* /transactions POST
-  * For adding new transaction
-  * ex. request:
-  Body
-    ```
-    {
-    	"amount": 3,
-    	"timestamp": 1526817743117
-    }
-    ```
-  * response: 
-    * 201: in case of success
-    * 204: if transaction is older than 60 seconds 
-  
-* /statistics GET
-  * Get statistics (count, sum, avg, min, max) of transactions for the last 60 seconds
-  * example response:
-    ```
-    {
-        "sum": 12,
-        "avg": 4,
-        "max": 5,
-        "min": 3,
-        "count": 3
-    }
-    ```
+*    POST   /v1/accounts: create account
+*    GET    /v1/accounts: get all accounts
+*   DELETE /v1/accounts/{id}: delete account
+*    POST   /v1/accounts/{id}/deposits: add deposit
+*    POST   /v1/accounts/{id}/withdraws: withdraw money
+*    POST   /v1/accounts/{id}/transfers: transfer money between 2 accounts
+
