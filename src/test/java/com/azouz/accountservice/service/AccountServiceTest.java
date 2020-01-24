@@ -20,8 +20,7 @@ import java.util.List;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 public class AccountServiceTest {
 
@@ -185,24 +184,49 @@ public class AccountServiceTest {
         assertGetAllTransactions(TransactionType.WITHDRAW, createdAccount.getId(), 100);
     }
 
-    @Test(expected = AccountNotFoundException.class)
+    @Test
     public void transferNonExistingSenderAccountTest() {
+        try {
+            assertGetAllAccounts(Lists.newArrayList());
+            this.accountService
+                    .accountMoneyTransfer(DataUtils
+                            .getTransferRequest("id", "2", BigDecimal.valueOf(1)));
+            throw new RuntimeException("test must not come at this line");
+        } catch (final Exception exception) {
+            assertTrue(exception instanceof AccountNotFoundException);
+        }
         assertGetAllAccounts(Lists.newArrayList());
-        this.accountService
-                .accountMoneyTransfer(DataUtils
-                        .getTransferRequest("id", "2", BigDecimal.valueOf(1)));
-        throw new RuntimeException("test must not come at this line");
     }
 
 
-    @Test(expected = AccountNotFoundException.class)
-    public void transferToNonExistingReceiverAccountTest() {
+    @Test
+    public void transferFromExistingSenderAccountToNonExistingReceiverAccountTest() {
         final Account senderAccount =
                 this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(100)));
-        this.accountService
-                .accountMoneyTransfer(DataUtils
-                        .getTransferRequest(senderAccount.getId(), "2", BigDecimal.valueOf(1)));
-        throw new RuntimeException("test must not come at this line");
+        try {
+            this.accountService
+                    .accountMoneyTransfer(DataUtils
+                            .getTransferRequest(senderAccount.getId(), "2", BigDecimal.valueOf(1)));
+            throw new RuntimeException("test must not come at this line");
+        } catch (final Exception exception) {
+            assertTrue(exception instanceof AccountNotFoundException);
+        }
+        assertGetAllAccounts(Lists.newArrayList(senderAccount));
+    }
+
+    @Test
+    public void transferFromNonExistingSenderAccountTonExistingReceiverAccountTest() {
+        final Account receiverAccount =
+                this.accountService.createAccount(DataUtils.getDummyCreateAccountRequest(BigDecimal.valueOf(100)));
+        try {
+            this.accountService
+                    .accountMoneyTransfer(DataUtils
+                            .getTransferRequest("2", receiverAccount.getId(), BigDecimal.valueOf(1)));
+            throw new RuntimeException("test must not come at this line");
+        } catch (final Exception exception) {
+            assertTrue(exception instanceof AccountNotFoundException);
+        }
+        assertGetAllAccounts(Lists.newArrayList(receiverAccount));
     }
 
     @Test(expected = InsufficientAccountBalanceException.class)
